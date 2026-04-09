@@ -1,0 +1,56 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Set this to your default branch
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            original/package.json
+            redesigned/package.json
+
+      # Build Original Version
+      - name: Install and Build Original
+        run: |
+          cd original
+          npm install
+          npm run build
+
+      # Build Redesigned Version
+      - name: Install and Build Redesigned
+        run: |
+          cd redesigned
+          npm install
+          npm run build
+
+      # Assemble the deployment directory
+      - name: Assemble
+        run: |
+          mkdir -p deploy/original
+          mkdir -p deploy/redesigned
+          cp -r original/dist/* deploy/original/
+          cp -r redesigned/dist/* deploy/redesigned/
+          cp index.html deploy/index.html
+
+      # Deploy to GitHub Pages branch
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy

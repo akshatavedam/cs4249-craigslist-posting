@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Times New Roman", Times, serif;
+}
+
+@layer base {
+  body {
+    @apply font-serif bg-white text-black;
+  }
+  
+  a {
+    @apply text-[#0000ee] hover:underline cursor-pointer;
+  }
+  
+  a:visited {
+    @apply text-[#551a8b];
+  }
+}
+
+.cl-box {
+  @apply border border-[#ccc] mb-4;
+}
+
+.cl-header {
+  @apply bg-[#eee] border-b border-[#ccc] px-2 py-0.5 font-bold text-center text-[#0000ee];
+}
+
+.cl-link-list {
+  @apply text-[11px] leading-tight p-1;
+}
+
+.cl-link-list a {
+  @apply inline-block py-0.5 mr-2;
+}
+
+.post-ad-btn {
+  @apply flex items-center justify-center gap-2 border border-[#228b22] text-[#228b22] bg-white px-4 py-1 rounded font-bold hover:bg-[#f0fff0] transition-colors;
+}
+
+.location-header {
+  @apply flex justify-between items-center bg-[#f2f2f2] border border-[#ccc] px-4 py-1 mb-4;
+}
+
+.cl-button {
+  @apply bg-[#efefef] border border-[#767676] px-2 py-0.5 text-sm hover:bg-[#e5e5e5] active:bg-[#d5d5d5];
+}
+
+.cl-radio-label {
+  @apply flex items-center gap-2 cursor-pointer hover:text-blue-700 py-0.5 text-[13px];
+}
+
+.cl-form-group {
+  @apply mb-4 border border-[#ccc] p-4 relative pt-6;
+}
+
+.cl-form-label-top {
+  @apply absolute -top-3 left-2 bg-white px-1 text-[11px] text-[#006600] font-bold;
+}
+
+.cl-input {
+  @apply border border-[#ccc] px-1 py-0.5 text-sm focus:border-[#006600] outline-none;
+}
+
+.cl-input-green {
+  @apply border border-[#006600] px-1 py-0.5 text-sm outline-none;
+}
+
+.cl-select {
+  @apply border border-[#006600] px-1 py-0.5 text-sm bg-white outline-none;
+}
+
+.cl-form-section-label {
+  @apply text-[#006600] text-[11px] font-bold mb-1;
+}
+
+.cl-upload-box {
+  @apply border border-[#ccc] rounded-lg p-12 flex flex-col items-center justify-center relative min-h-[200px];
+}
+
+.cl-add-images-btn {
+  @apply bg-[#f0f0f0] border border-[#999] rounded-xl px-4 py-2 text-sm hover:bg-gray-200 transition-colors;
+}
+
+.cl-done-btn {
+  @apply bg-[#eee] border border-[#999] px-4 py-1 text-lg hover:bg-gray-200 transition-colors;
+}
+
+.cl-review-banner {
+  @apply bg-black text-white p-2 flex justify-between items-center mb-4;
+}
+
+.cl-review-btn-small {
+  @apply border border-[#999] px-2 py-0.5 text-[11px] bg-[#f7f7f7] hover:bg-gray-200;
+}
+
+.cl-breadcrumb-bar {
+  @apply bg-[#eee] p-1 px-2 text-[13px] mb-4 flex items-center gap-1;
+}
+
+.cl-reply-btn {
+  @apply bg-[#f0e6ff] border border-[#d1c4e9] text-[#673ab7] px-4 py-1 rounded text-sm font-bold hover:bg-[#e1d5f5];
+}
+
+.cl-attribute-link {
+  @apply text-blue-700 hover:underline text-[13px];
+}
+
+/* Redesigned UI Styles */
+.rd-progress-container {
+  @apply flex items-center justify-center gap-4 mb-12 mt-8;
+}
+
+.rd-step-circle {
+  @apply w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors;
+}
+
+.rd-step-active {
+  @apply bg-[#d199e1] text-black;
+}
+
+.rd-step-inactive {
+  @apply bg-[#e0e0e0] text-black;
+}
+
+.rd-step-line {
+  @apply h-[2px] w-24 bg-[#e0e0e0];
+}
+
+.rd-category-container {
+  @apply flex justify-center gap-6 mb-12;
+}
+
+.rd-category-box {
+  @apply bg-[#d9d9d9] rounded-lg p-6 w-[300px] flex flex-col items-center min-h-[250px];
+}
+
+.rd-category-title {
+  @apply font-bold text-lg mb-4;
+}
+
+.rd-category-divider {
+  @apply w-full h-[2px] bg-white mb-6;
+}
+
+.rd-category-grid {
+  @apply grid grid-cols-2 gap-4 w-full;
+}
+
+.rd-dummy-btn {
+  @apply bg-white h-10 w-full rounded-sm;
+}
+
+.rd-active-btn {
+  @apply bg-white h-10 w-full rounded-sm flex items-center justify-center text-[11px] font-bold text-center px-2 hover:bg-gray-50 transition-colors cursor-pointer;
+}
+
+.rd-subcategory-grid {
+  @apply grid grid-cols-5 border border-black max-w-[1000px] mx-auto;
+}
+
+.rd-subcategory-item {
+  @apply border border-black p-4 flex flex-col items-center justify-center text-center text-[11px] min-h-[80px] hover:bg-gray-50 cursor-pointer;
+}
+
+/* Revamped Redesign Styles */
+.rd-section-title {
+  @apply text-xl font-bold mb-4;
+}
+
+.rd-input-label {
+  @apply block text-[11px] font-bold mb-1;
+}
+
+.rd-input {
+  @apply w-full border border-[#ccc] bg-[#f9f9f9] px-2 py-1.5 text-sm rounded-sm focus:border-[#d199e1] outline-none;
+}
+
+.rd-upload-area {
+  @apply border border-[#ccc] rounded-sm p-12 flex flex-col items-center justify-center bg-white mb-8;
+}
+
+.rd-purple-btn {
+  @apply bg-[#a855f7] text-white px-6 py-2 rounded-md font-bold hover:bg-[#9333ea] transition-colors;
+}
+
+.rd-amenity-card {
+  @apply border border-[#ccc] p-4 rounded-md flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors;
+}
+
+.rd-amenity-card.active {
+  @apply bg-[#d9d9d9];
+}
+
+.rd-amenity-icon {
+  @apply w-6 h-6;
+}
+
+.rd-amenity-label {
+  @apply text-[10px] font-bold;
+}
+
+.rd-period-btn {
+  @apply border border-[#ccc] px-4 py-1.5 text-xs font-bold hover:bg-gray-50;
+}
+
+.rd-period-btn.active {
+  @apply bg-[#d9d9d9];
+}
+
+.rd-nav-btn-next {
+  @apply bg-[#a855f7] text-white px-8 py-1.5 rounded-md font-bold hover:bg-[#9333ea];
+}
+
+.rd-nav-btn-back {
+  @apply text-sm font-bold underline hover:text-gray-600;
+}
