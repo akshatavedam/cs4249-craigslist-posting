@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Craigslist Posting Redesign - Project Showcase</title>
+    <title>PG07 - Craigslist Posting Redesign</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -47,12 +48,27 @@
             border-radius: 50%;
         }
 
-        .blob-1 { top: -100px; left: -100px; animation: float 20s infinite alternate; }
-        .blob-2 { bottom: -100px; right: -100px; background: radial-gradient(circle, var(--secondary) 0%, transparent 70%); animation: float 15s infinite alternate-reverse; }
+        .blob-1 {
+            top: -100px;
+            left: -100px;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-2 {
+            bottom: -100px;
+            right: -100px;
+            background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+            animation: float 15s infinite alternate-reverse;
+        }
 
         @keyframes float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(100px, 50px); }
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(100px, 50px);
+            }
         }
 
         .container {
@@ -65,7 +81,10 @@
         }
 
         @keyframes fadeIn {
-            to { opacity: 1; transform: translateY(0); }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
@@ -194,6 +213,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="background-blob blob-1"></div>
     <div class="background-blob blob-2"></div>
@@ -201,7 +221,8 @@
     <div class="container">
         <header>
             <h1>Craigslist Reimagined</h1>
-            <p class="subtitle">A comparison between the classic Craigslist posting experience and a modern, user-centric redesign.</p>
+            <p class="subtitle">A comparison between the classic Craigslist posting experience and a modern,
+                user-centric redesign.</p>
         </header>
 
         <section class="showcase-grid">
@@ -217,7 +238,8 @@
             <a href="redesigned/" class="card">
                 <span class="badge badge-redesign">Evolution</span>
                 <h2>Redesigned Version</h2>
-                <p>A modern take on the posting flow focusing on clarity, visual feedback, and reduced cognitive load.</p>
+                <p>A modern take on the posting flow focusing on clarity, visual feedback, and reduced cognitive load.
+                </p>
                 <div class="btn" style="color: #a78bfa;">
                     View Redesign <span class="arrow">→</span>
                 </div>
@@ -229,4 +251,5 @@
         </footer>
     </div>
 </body>
+
 </html>

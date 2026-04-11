@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent } from 'react';
 import { Search, MapPin, Star, SquarePen, User, Dog, Waves, ParkingCircle, Bed, Wind, Cigarette, Plus } from 'lucide-react';
 
 type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review' | 'redesign' | 'rd-form' | 'rd-preview';
@@ -13,6 +13,56 @@ export default function App() {
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [showRedesignSubcategories, setShowRedesignSubcategories] = useState(false);
+
+  // Redesign Form State
+  const [rdForm, setRdForm] = useState({
+    title: '',
+    address: '',
+    city: '',
+    zip: '',
+    country: '',
+    description: '',
+    phone: '',
+    email: '',
+    rent: '',
+    sqft: '',
+    housingType: 'Apartment',
+    bedrooms: '0',
+    bathrooms: '0',
+    startDate: ''
+  });
+  const [rdRentPeriod, setRdRentPeriod] = useState<'Monthly' | 'Weekly' | 'Daily'>('Daily');
+  const [rdAmenities, setRdAmenities] = useState<string[]>(['Free Parking', 'Furnished', 'Air-conditioned']);
+  const [rdPhotos, setRdPhotos] = useState<string[]>([]);
+  const [rdErrors, setRdErrors] = useState<string[]>([]);
+
+  const toggleRdAmenity = (label: string) => {
+    setRdAmenities(prev => 
+      prev.includes(label) ? prev.filter(a => a !== label) : [...prev, label]
+    );
+  };
+
+  const handleRdPhotoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      const newPhotos = filesArray.map(file => URL.createObjectURL(file as Blob));
+      setRdPhotos(prev => [...prev, ...newPhotos]);
+    }
+  };
+
+  const validateRdForm = () => {
+    const errors: string[] = [];
+    if (!rdForm.title) errors.push('Title is required');
+    if (!rdForm.address) errors.push('Street Address is required');
+    if (!rdForm.city) errors.push('City is required');
+    if (!rdForm.zip) errors.push('ZIP Code is required');
+    if (!rdForm.country) errors.push('Country is required');
+    if (!rdForm.rent) errors.push('Rent is required');
+    if (!rdForm.sqft) errors.push('Sqft is required');
+    
+    setRdErrors(errors);
+    return errors.length === 0;
+  };
 
   // Sync state with URL query parameters
   useEffect(() => {
@@ -882,12 +932,48 @@ export default function App() {
 
       <h2 className="text-center text-lg font-bold mb-8">Details</h2>
 
+      {/* Validation Errors */}
+      {rdErrors.length > 0 && (
+        <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 font-bold text-sm mb-2">Please fix the following errors:</p>
+          <ul className="list-disc list-inside text-red-500 text-xs">
+            {rdErrors.map((error, idx) => <li key={idx}>{error}</li>)}
+          </ul>
+        </div>
+      )}
+
       {/* Photos */}
       <section className="mb-12">
         <h3 className="rd-section-title">Photos <span className="text-[11px] text-gray-400 font-normal">(if applicable)</span></h3>
-        <div className="rd-upload-area">
-          <button className="rd-purple-btn mb-4">Upload Photos</button>
+        <div className="rd-upload-area relative">
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*" 
+            className="absolute inset-0 opacity-0 cursor-pointer" 
+            onChange={handleRdPhotoUpload}
+          />
+          <button className="rd-purple-btn mb-4 pointer-events-none">Upload Photos</button>
           <p className="text-gray-400 text-sm">or drag and drop up to 24 photos</p>
+          
+          {rdPhotos.length > 0 && (
+            <div className="mt-8 grid grid-cols-4 gap-4 w-full">
+              {rdPhotos.map((photo, idx) => (
+                <div key={idx} className="aspect-square relative group">
+                  <img src={photo} alt={`Upload ${idx}`} className="w-full h-full object-cover rounded-sm border border-gray-200" />
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRdPhotos(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Plus size={12} className="rotate-45" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -898,43 +984,86 @@ export default function App() {
           <div>
             <div className="flex justify-between items-end mb-1">
               <label className="rd-input-label">Title*</label>
-              <span className="text-[10px] text-gray-400 font-bold">(0/80)</span>
+              <span className="text-[10px] text-gray-400 font-bold">({rdForm.title.length}/80)</span>
             </div>
-            <input type="text" className="rd-input" placeholder="What are you offering?" />
+            <input 
+              type="text" 
+              className="rd-input" 
+              placeholder="What are you offering?" 
+              value={rdForm.title}
+              onChange={(e) => setRdForm({...rdForm, title: e.target.value.slice(0, 80)})}
+            />
           </div>
           <div>
             <label className="rd-input-label">Street Address*</label>
-            <input type="text" className="rd-input" />
+            <input 
+              type="text" 
+              className="rd-input" 
+              value={rdForm.address}
+              onChange={(e) => setRdForm({...rdForm, address: e.target.value})}
+            />
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="rd-input-label">City*</label>
-              <input type="text" className="rd-input" />
+              <input 
+                type="text" 
+                className="rd-input" 
+                value={rdForm.city}
+                onChange={(e) => setRdForm({...rdForm, city: e.target.value})}
+              />
             </div>
             <div>
               <label className="rd-input-label">ZIP Code*</label>
-              <input type="text" className="rd-input" />
+              <input 
+                type="text" 
+                className="rd-input" 
+                value={rdForm.zip}
+                onChange={(e) => setRdForm({...rdForm, zip: e.target.value})}
+              />
             </div>
             <div>
               <label className="rd-input-label">Country*</label>
-              <input type="text" className="rd-input" />
+              <input 
+                type="text" 
+                className="rd-input" 
+                value={rdForm.country}
+                onChange={(e) => setRdForm({...rdForm, country: e.target.value})}
+              />
             </div>
           </div>
           <div>
             <div className="flex justify-between items-end mb-1">
               <label className="rd-input-label">Description</label>
-              <span className="text-[10px] text-gray-400 font-bold">(0/500)</span>
+              <span className="text-[10px] text-gray-400 font-bold">({rdForm.description.length}/500)</span>
             </div>
-            <textarea className="rd-input h-32 resize-none" placeholder="Describe your offering..." />
+            <textarea 
+              className="rd-input h-32 resize-none" 
+              placeholder="Describe your offering..." 
+              value={rdForm.description}
+              onChange={(e) => setRdForm({...rdForm, description: e.target.value.slice(0, 500)})}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="rd-input-label">Phone number</label>
-              <input type="text" className="rd-input" placeholder="Your phone number" />
+              <input 
+                type="text" 
+                className="rd-input" 
+                placeholder="Your phone number" 
+                value={rdForm.phone}
+                onChange={(e) => setRdForm({...rdForm, phone: e.target.value})}
+              />
             </div>
             <div>
               <label className="rd-input-label">Preferred email</label>
-              <input type="text" className="rd-input" placeholder="Your preferred email to be contacted" />
+              <input 
+                type="text" 
+                className="rd-input" 
+                placeholder="Your preferred email to be contacted" 
+                value={rdForm.email}
+                onChange={(e) => setRdForm({...rdForm, email: e.target.value})}
+              />
             </div>
           </div>
         </div>
@@ -950,40 +1079,87 @@ export default function App() {
             <label className="rd-input-label">Rent*</label>
             <div className="flex items-center bg-[#f9f9f9] border border-[#ccc] rounded-sm px-2">
               <span className="text-sm font-bold">$</span>
-              <input type="text" className="w-full bg-transparent py-1.5 px-1 text-sm outline-none" />
+              <input 
+                type="text" 
+                className="w-full bg-transparent py-1.5 px-1 text-sm outline-none" 
+                value={rdForm.rent}
+                onChange={(e) => setRdForm({...rdForm, rent: e.target.value})}
+              />
             </div>
           </div>
           <div className="flex flex-col justify-end">
             <div className="flex">
-              <button className="rd-period-btn rounded-l-md">Monthly</button>
-              <button className="rd-period-btn">Weekly</button>
-              <button className="rd-period-btn rounded-r-md active">Daily</button>
+              <button 
+                onClick={() => setRdRentPeriod('Monthly')}
+                className={`rd-period-btn rounded-l-md ${rdRentPeriod === 'Monthly' ? 'active' : ''}`}
+              >
+                Monthly
+              </button>
+              <button 
+                onClick={() => setRdRentPeriod('Weekly')}
+                className={`rd-period-btn ${rdRentPeriod === 'Weekly' ? 'active' : ''}`}
+              >
+                Weekly
+              </button>
+              <button 
+                onClick={() => setRdRentPeriod('Daily')}
+                className={`rd-period-btn rounded-r-md ${rdRentPeriod === 'Daily' ? 'active' : ''}`}
+              >
+                Daily
+              </button>
             </div>
           </div>
           <div>
             <label className="rd-input-label">Sqft*</label>
-            <input type="text" className="rd-input" placeholder="Size in square feet" />
+            <input 
+              type="text" 
+              className="rd-input" 
+              placeholder="Size in square feet" 
+              value={rdForm.sqft}
+              onChange={(e) => setRdForm({...rdForm, sqft: e.target.value})}
+            />
           </div>
           <div>
             <label className="rd-input-label">Housing Type</label>
-            <select className="rd-input appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_8px_center] bg-no-repeat">
+            <select 
+              className="rd-input appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_8px_center] bg-no-repeat"
+              value={rdForm.housingType}
+              onChange={(e) => setRdForm({...rdForm, housingType: e.target.value})}
+            >
               <option>Apartment</option>
               <option>House</option>
+              <option>Condo</option>
+              <option>Townhouse</option>
             </select>
           </div>
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="rd-input-label">Bedrooms</label>
-              <input type="number" className="rd-input" defaultValue="0" />
+              <input 
+                type="number" 
+                className="rd-input" 
+                value={rdForm.bedrooms}
+                onChange={(e) => setRdForm({...rdForm, bedrooms: e.target.value})}
+              />
             </div>
             <div className="flex-1">
               <label className="rd-input-label">Bathrooms</label>
-              <input type="number" className="rd-input" defaultValue="0" />
+              <input 
+                type="number" 
+                className="rd-input" 
+                value={rdForm.bathrooms}
+                onChange={(e) => setRdForm({...rdForm, bathrooms: e.target.value})}
+              />
             </div>
           </div>
           <div>
             <label className="rd-input-label">Start Date</label>
-            <input type="text" className="rd-input" placeholder="Select date" />
+            <input 
+              type="date" 
+              className="rd-input" 
+              value={rdForm.startDate}
+              onChange={(e) => setRdForm({...rdForm, startDate: e.target.value})}
+            />
           </div>
         </div>
       </section>
@@ -994,40 +1170,42 @@ export default function App() {
       <section className="mb-12">
         <h3 className="rd-section-title">Amenities</h3>
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="rd-amenity-card">
-            <Dog className="rd-amenity-icon" />
-            <span className="rd-amenity-label">Pet-friendly</span>
-          </div>
-          <div className="rd-amenity-card">
-            <Waves className="rd-amenity-icon" />
-            <span className="rd-amenity-label">Washer</span>
-          </div>
-          <div className="rd-amenity-card active">
-            <ParkingCircle className="rd-amenity-icon" />
-            <span className="rd-amenity-label">Free Parking</span>
-          </div>
-          <div className="rd-amenity-card active">
-            <Bed className="rd-amenity-icon" />
-            <span className="rd-amenity-label">Furnished</span>
-          </div>
-          <div className="rd-amenity-card active">
-            <Wind className="rd-amenity-icon" />
-            <span className="rd-amenity-label">Air-conditioned</span>
-          </div>
-          <div className="rd-amenity-card">
-            <Cigarette className="rd-amenity-icon" />
-            <span className="rd-amenity-label">No smoking</span>
-          </div>
-        </div>
-        <div className="border-2 border-dashed border-[#ccc] rounded-md p-4 flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-gray-50">
-          <Plus size={24} className="text-gray-400" />
-          <span className="text-[10px] font-bold text-gray-600">Add amenities</span>
+          {[
+            { label: 'Pet-friendly', icon: Dog },
+            { label: 'Washer', icon: Waves },
+            { label: 'Free Parking', icon: ParkingCircle },
+            { label: 'Furnished', icon: Bed },
+            { label: 'Air-conditioned', icon: Wind },
+            { label: 'No smoking', icon: Cigarette }
+          ].map((amenity, idx) => {
+            const Icon = amenity.icon;
+            const isActive = rdAmenities.includes(amenity.label);
+            return (
+              <div 
+                key={idx} 
+                className={`rd-amenity-card ${isActive ? 'active' : ''}`}
+                onClick={() => toggleRdAmenity(amenity.label)}
+              >
+                <Icon className="rd-amenity-icon" />
+                <span className="rd-amenity-label">{amenity.label}</span>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       <div className="flex justify-between items-center mt-12 pt-4 border-t border-[#eee]">
         <button onClick={() => navigate('redesign')} className="rd-nav-btn-back">Back</button>
-        <button onClick={() => navigate('rd-preview')} className="rd-nav-btn-next">Next</button>
+        <button 
+          onClick={() => {
+            if (validateRdForm()) {
+              navigate('rd-preview');
+            }
+          }} 
+          className="rd-nav-btn-next"
+        >
+          Next
+        </button>
       </div>
     </div>
   );
@@ -1046,30 +1224,62 @@ export default function App() {
       <h2 className="text-center text-2xl font-bold mb-12">Preview & Publish</h2>
 
       <div className="grid grid-cols-[400px_1fr] gap-12 mb-12">
-        {/* Image Placeholder */}
-        <div className="aspect-square bg-[#d9d9d9] relative border border-[#ccc]">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="w-full h-full text-gray-400" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.5" />
-              <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.5" />
-            </svg>
-          </div>
+        {/* Image Placeholder or Actual Images */}
+        <div className="aspect-square bg-[#f0f0f0] relative border border-[#ccc] overflow-hidden">
+          {rdPhotos.length > 0 ? (
+            <div className="w-full h-full relative">
+              <img src={rdPhotos[0]} alt="Preview" className="w-full h-full object-cover" />
+              {rdPhotos.length > 1 && (
+                <div className="absolute bottom-4 right-4 bg-black/50 text-white px-2 py-1 rounded-md text-xs">
+                  + {rdPhotos.length - 1} more
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg className="w-full h-full text-gray-300" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.5" />
+              </svg>
+            </div>
+          )}
         </div>
 
         {/* Content */}
         <div>
-          <h1 className="text-5xl font-bold mb-6">Title</h1>
-          <p className="text-sm leading-relaxed text-gray-800 mb-12">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugi
+          <h1 className="text-5xl font-bold mb-6">{rdForm.title || 'Title'}</h1>
+          <div className="flex gap-4 mb-6 text-sm text-gray-600 font-medium">
+            <span>${rdForm.rent} / {rdRentPeriod.toLowerCase()}</span>
+            <span>•</span>
+            <span>{rdForm.sqft} sqft</span>
+            <span>•</span>
+            <span>{rdForm.housingType}</span>
+          </div>
+          <p className="text-sm leading-relaxed text-gray-800 mb-12 whitespace-pre-wrap">
+            {rdForm.description || 'No description provided.'}
           </p>
 
-          <div>
-            <h4 className="font-bold underline text-sm mb-2">Amenities</h4>
-            <ul className="list-disc list-inside text-sm flex flex-col gap-1">
-              <li>Furnished</li>
-              <li>Air-conditioned</li>
-              <li>Free parking</li>
-            </ul>
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <h4 className="font-bold underline text-sm mb-2">Location</h4>
+              <p className="text-sm text-gray-700">
+                {rdForm.address}<br />
+                {rdForm.city}, {rdForm.zip}<br />
+                {rdForm.country}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold underline text-sm mb-2">Amenities</h4>
+              {rdAmenities.length > 0 ? (
+                <ul className="list-disc list-inside text-sm flex flex-col gap-1">
+                  {rdAmenities.map((amenity, idx) => (
+                    <li key={idx}>{amenity}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-500 italic">No amenities selected</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1078,7 +1288,7 @@ export default function App() {
         <button onClick={() => navigate('rd-form')} className="rd-nav-btn-back text-lg">Back</button>
         <button 
           onClick={() => {
-            alert('Success!');
+            alert('Success! Your ad has been published.');
             navigate('home');
           }}
           className="rd-purple-btn px-12 text-lg"
