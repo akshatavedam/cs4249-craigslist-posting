@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,12 +48,27 @@
             border-radius: 50%;
         }
 
-        .blob-1 { top: -100px; left: -100px; animation: float 20s infinite alternate; }
-        .blob-2 { bottom: -100px; right: -100px; background: radial-gradient(circle, var(--secondary) 0%, transparent 70%); animation: float 15s infinite alternate-reverse; }
+        .blob-1 {
+            top: -100px;
+            left: -100px;
+            animation: float 20s infinite alternate;
+        }
+
+        .blob-2 {
+            bottom: -100px;
+            right: -100px;
+            background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+            animation: float 15s infinite alternate-reverse;
+        }
 
         @keyframes float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(100px, 50px); }
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(100px, 50px);
+            }
         }
 
         .container {
@@ -65,7 +81,10 @@
         }
 
         @keyframes fadeIn {
-            to { opacity: 1; transform: translateY(0); }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
@@ -187,6 +206,55 @@
             transform: translateX(5px);
         }
 
+        .worker-form {
+            margin: 2rem auto 4rem;
+            max-width: 520px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: left;
+        }
+
+        .worker-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .worker-form input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .worker-form button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.9rem 1.2rem;
+            border: none;
+            border-radius: 999px;
+            background: var(--secondary);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .worker-form .status {
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
         footer {
             margin-top: 2rem;
             color: var(--text-muted);
@@ -194,6 +262,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="background-blob blob-1"></div>
     <div class="background-blob blob-2"></div>
@@ -201,8 +270,20 @@
     <div class="container">
         <header>
             <h1>Craigslist Reimagined</h1>
-            <p class="subtitle">A comparison between the classic Craigslist posting experience and a modern, user-centric redesign.</p>
+            <p class="subtitle">A comparison between the classic Craigslist posting experience and a modern,
+                user-centric redesign.</p>
         </header>
+
+        <section class="worker-form" aria-labelledby="worker-id-label">
+            <form id="worker-id-form">
+                <label id="worker-id-label" for="worker-id">Worker ID</label>
+                <input id="worker-id" name="worker-id" type="text" placeholder="Enter your worker ID" autocomplete="off"
+                    required />
+                <button type="submit">Save Worker ID</button>
+                <div class="status" id="worker-id-status">Your worker ID will be stored locally for metrics tracking.
+                </div>
+            </form>
+        </section>
 
         <section class="showcase-grid">
             <a href="original/" class="card">
@@ -217,7 +298,8 @@
             <a href="redesigned/" class="card">
                 <span class="badge badge-redesign">Evolution</span>
                 <h2>Redesigned Version</h2>
-                <p>A modern take on the posting flow focusing on clarity, visual feedback, and reduced cognitive load.</p>
+                <p>A modern take on the posting flow focusing on clarity, visual feedback, and reduced cognitive load.
+                </p>
                 <div class="btn" style="color: #a78bfa;">
                     View Redesign <span class="arrow">→</span>
                 </div>
@@ -228,5 +310,41 @@
             Built for CS4249 - Computer-Human Interaction
         </footer>
     </div>
+
+    <script>
+        const WORKER_ID_KEY = 'workerId';
+        const workerIdInput = document.getElementById('worker-id');
+        const workerIdForm = document.getElementById('worker-id-form');
+        const statusMessage = document.getElementById('worker-id-status');
+
+        const setStatus = (message, success = true) => {
+            statusMessage.textContent = message;
+            statusMessage.style.color = success ? 'var(--text-muted)' : '#fda4af';
+        };
+
+        const loadWorkerId = () => {
+            const savedId = localStorage.getItem(WORKER_ID_KEY);
+            if (savedId && workerIdInput) {
+                workerIdInput.value = savedId;
+                setStatus(`Loaded worker ID: ${savedId}`);
+            }
+        };
+
+        if (workerIdForm && workerIdInput) {
+            workerIdForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const workerId = workerIdInput.value.trim();
+                if (!workerId) {
+                    setStatus('Please enter a valid worker ID.', false);
+                    return;
+                }
+                localStorage.setItem(WORKER_ID_KEY, workerId);
+                setStatus(`Worker ID saved: ${workerId}`);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadWorkerId);
+    </script>
 </body>
+
 </html>
