@@ -1,4 +1,4 @@
-/ Adapted from http://web.mit.edu/6.813/www/sp18/assignments/as1-implementation/logging.js
+// Adapted from http://web.mit.edu/6.813/www/sp18/assignments/as1-implementation/logging.js
 //
 // A simple Google-spreadsheet-based event logging framework.
 //
