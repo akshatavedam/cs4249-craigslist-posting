@@ -506,6 +506,7 @@ export default function App() {
               if (selectedType === 'housing offered') {
                 navigate('category');
               } else {
+                logError('wrong_category', 'Selected "' + selectedType + '" instead of "housing offered"');
                 alert('Workflow test: Currently only "housing offered" is implemented for the next step.');
               }
             }}
@@ -561,6 +562,7 @@ export default function App() {
               if (selectedCategory === 'apartments / housing for rent') {
                 navigate('form');
               } else {
+                logError('wrong_category', 'Selected "' + selectedCategory + '" instead of "apartments / housing for rent"');
                 alert('Workflow test: Currently only "apartments / housing for rent" is implemented for the next step.');
               }
             }}
