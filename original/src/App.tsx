@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { Search, MapPin, Star, SquarePen, User } from 'lucide-react';
+import { startTask, endTask, logError, logNavigation } from './logger';
 
 type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review';
 
@@ -34,7 +35,9 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
+
   const navigate = (newView: View) => {
+    logNavigation(view, newView);
     let url = window.location.pathname;
     if (newView === 'post') url = '?s=p';
     else if (newView === 'category') url = '?s=c';
@@ -59,7 +62,10 @@ export default function App() {
         </div>
 
         <button 
-          onClick={() => navigate('post')}
+	    onClick={() => {
+            startTask();
+            navigate('post');
+          }}
           className="post-ad-btn w-full"
         >
           <SquarePen size={16} />
@@ -404,7 +410,9 @@ export default function App() {
             onClick={() => {
               if (selectedType === 'housing offered') {
                 navigate('category');
-              } else {
+
+		  } else {
+                logError('wrong_category', 'Selected "' + selectedType + '" instead of "housing offered"');
                 alert('Workflow test: Currently only "housing offered" is implemented for the next step.');
               }
             }}
@@ -459,8 +467,11 @@ export default function App() {
             onClick={() => {
               if (selectedCategory === 'apartments / housing for rent') {
                 navigate('form');
-              } else {
-                alert('Workflow test: Currently only "apartments / housing for rent" is implemented for the next step.');
+
+		  } else {
+                logError('wrong_category', 'Selected "' + selectedCategory + '" instead of "apartments / housing for rent"');
+                alert('Workflow test: Currently only "apartments / housing for rent" is implemented for the next step.');		  
+
               }
             }}
             className="cl-button"
@@ -709,7 +720,8 @@ export default function App() {
       <div className="cl-review-banner">
         <span className="font-bold text-lg ml-4">this is an unpublished draft.</span>
         <button 
-          onClick={() => {
+	    onClick={() => {
+            endTask();
             alert('Success!');
             navigate('home');
           }}
@@ -759,6 +771,7 @@ export default function App() {
         </div>
         <button 
           onClick={() => {
+            endTask();
             alert('Success!');
             navigate('home');
           }}

@@ -5,6 +5,7 @@
 
 import { useEffect, useState, ChangeEvent } from 'react';
 import { Search, MapPin, Star, SquarePen, User, Dog, Waves, ParkingCircle, Bed, Wind, Cigarette, Plus } from 'lucide-react';
+import { startTask, endTask, logError, logNavigation } from './logger';
 
 type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review' | 'redesign' | 'rd-form' | 'rd-preview' | 'wrong';
 
@@ -91,7 +92,9 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
+
   const navigate = (newView: View) => {
+    logNavigation(view, newView);
     let url = window.location.pathname;
     if (newView === 'post') url = '?s=p';
     else if (newView === 'category') url = '?s=c';
@@ -153,7 +156,10 @@ export default function App() {
           </div>
 
           <button
-            onClick={() => navigate('redesign')}
+            onClick={() => {
+              startTask();
+              navigate('redesign');
+            }}
             className="post-ad-btn w-full"
           >
             <SquarePen size={16} />
@@ -228,7 +234,7 @@ export default function App() {
                 <Star size={20} className="text-yellow-500" />
                 <span>faves</span>
               </a>
-              <button onClick={() => navigate('redesign')} className="nav-icon-link">
+		    <button onClick={() => { startTask(); navigate('redesign'); }} className="nav-icon-link">
                 <SquarePen size={20} className="text-green-600" />
                 <span>post</span>
               </button>
@@ -805,6 +811,7 @@ export default function App() {
         <span className="font-bold text-lg ml-4">this is an unpublished draft.</span>
         <button
           onClick={() => {
+            endTask();
             alert('Success!');
             navigate('home');
           }}
@@ -854,6 +861,7 @@ export default function App() {
         </div>
         <button
           onClick={() => {
+            endTask();
             alert('Success!');
             navigate('home');
           }}
@@ -959,6 +967,7 @@ export default function App() {
                 if (item.label === 'apartments / housing for rent') {
                   navigate('rd-form');
                 } else if (item.label !== '') {
+                  logError('wrong_category', 'Selected "' + item.label + '" instead of "apartments / housing for rent"');
                   navigate('wrong');
                 }
               }}
@@ -1261,8 +1270,22 @@ export default function App() {
         <button onClick={() => navigate('redesign')} className="rd-nav-btn-back">Back</button>
         <button
           onClick={() => {
-            if (validateRdForm()) {
+            const errors: string[] = [];
+            if (!rdForm.title) errors.push('Title is required');
+            if (!rdForm.address) errors.push('Street Address is required');
+            if (!rdForm.city) errors.push('City is required');
+            if (!rdForm.zip) errors.push('ZIP Code is required');
+            if (!rdForm.country) errors.push('Country is required');
+            if (!rdForm.rent) errors.push('Rent is required');
+            if (!rdForm.sqft) errors.push('Sqft is required');
+            
+            if (errors.length === 0) {
               navigate('rd-preview');
+            } else {
+              setRdErrors(errors);
+              errors.forEach((err) => {
+                logError('validation', err);
+              });
             }
           }}
           className="rd-nav-btn-next"
@@ -1351,6 +1374,7 @@ export default function App() {
         <button onClick={() => navigate('rd-form')} className="rd-nav-btn-back text-lg">Back</button>
         <button
           onClick={() => {
+            endTask();
             alert('you have completed the flow, thank you');
             navigate('home');
           }}
