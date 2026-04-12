@@ -684,6 +684,7 @@ export default function App() {
                 <option value="apartment">apartment</option>
                 <option value="condo">condo</option>
                 <option value="house">house</option>
+                <option value="hdb">hdb</option>
               </select>
             </div>
             <div>
