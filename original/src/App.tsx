@@ -72,14 +72,14 @@ export default function App() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.title) newErrors.title = 'Title is required';
-    if (!formData.address) newErrors.address = 'Street Address is required';
-    if (!formData.city) newErrors.city = 'City is required';
-    if (!formData.zip) newErrors.zip = 'ZIP is required';
-    if (!formData.country) newErrors.country = 'Country is required';
-    if (!formData.rent) newErrors.rent = 'Rent is required';
-    if (!formData.sqft) newErrors.sqft = 'Sqft is required';
-    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.title) { newErrors.title = 'Title is required'; logError('validation', 'Title is missing'); }
+    if (!formData.address) { newErrors.address = 'Street Address is required'; logError('validation', 'Address is missing'); }
+    if (!formData.city) { newErrors.city = 'City is required'; logError('validation', 'City is missing'); }
+    if (!formData.zip) { newErrors.zip = 'ZIP is required'; logError('validation', 'ZIP is missing'); }
+    if (!formData.country) { newErrors.country = 'Country is required'; logError('validation', 'Country is missing'); }
+    if (!formData.rent) { newErrors.rent = 'Rent is required'; logError('validation', 'Rent is missing'); }
+    if (!formData.sqft) { newErrors.sqft = 'Sqft is required'; logError('validation', 'Sqft is missing'); }
+    if (!formData.email) { newErrors.email = 'Email is required'; logError('validation', 'Email is missing'); }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;

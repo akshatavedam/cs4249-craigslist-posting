@@ -68,13 +68,14 @@ export default function App() {
 
   const validateRdForm = () => {
     const errors: Record<string, string> = {};
-    if (!rdForm.title) errors.title = 'Title is required';
-    if (!rdForm.address) errors.address = 'Street Address is required';
-    if (!rdForm.city) errors.city = 'City is required';
-    if (!rdForm.zip) errors.zip = 'ZIP Code is required';
-    if (!rdForm.country) errors.country = 'Country is required';
-    if (!rdForm.rent) errors.rent = 'Rent is required';
-    if (!rdForm.sqft) errors.sqft = 'Sqft is required';
+    if (!rdForm.title) { errors.title = 'Title is required'; logError('validation', 'Title is missing'); }
+    if (!rdForm.address) { errors.address = 'Street Address is required'; logError('validation', 'Address is missing'); }
+    if (!rdForm.city) { errors.city = 'City is required'; logError('validation', 'City is missing'); }
+    if (!rdForm.zip) { errors.zip = 'ZIP Code is required'; logError('validation', 'ZIP is missing'); }
+    if (!rdForm.country) { errors.country = 'Country is required'; logError('validation', 'Country is missing'); }
+    if (!rdForm.rent) { errors.rent = 'Rent is required'; logError('validation', 'Rent is missing'); }
+    if (!rdForm.sqft) { errors.sqft = 'Sqft is required'; logError('validation', 'Sqft is missing'); }
+    if (!rdForm.email) { errors.email = 'Email is required'; logError('validation', 'Email is missing'); }
 
     setRdErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1131,14 +1132,15 @@ export default function App() {
               />
             </div>
             <div>
-              <label className="rd-input-label">Preferred email</label>
+              <label className="rd-input-label">Preferred email*</label>
               <input
                 type="text"
-                className="rd-input"
+                className={`rd-input ${rdErrors.email ? 'border-red-500' : ''}`}
                 placeholder="Your preferred email to be contacted"
                 value={rdForm.email}
                 onChange={(e) => setRdForm({ ...rdForm, email: e.target.value })}
               />
+              {rdErrors.email && <span className="text-red-500 text-xs mt-1 block">{rdErrors.email}</span>}
             </div>
           </div>
         </div>
@@ -1282,22 +1284,12 @@ export default function App() {
         <button onClick={() => navigate('redesign')} className="rd-nav-btn-back">Back</button>
         <button
           onClick={() => {
-            const errors: string[] = [];
-            if (!rdForm.title) errors.push('Title is required');
-            if (!rdForm.address) errors.push('Street Address is required');
-            if (!rdForm.city) errors.push('City is required');
-            if (!rdForm.zip) errors.push('ZIP Code is required');
-            if (!rdForm.country) errors.push('Country is required');
-            if (!rdForm.rent) errors.push('Rent is required');
-            if (!rdForm.sqft) errors.push('Sqft is required');
-            
-            if (errors.length === 0) {
+            if (validateRdForm()) {
               navigate('rd-preview');
             } else {
-              setRdErrors(errors);
-              errors.forEach((err) => {
-                logError('validation', err);
-              });
+              // Log all errors found
+              const errs = validateRdForm(); // Get them again for logging if needed
+              // Note: setRdErrors was already called inside validateRdForm()
             }
           }}
           className="rd-nav-btn-next"
