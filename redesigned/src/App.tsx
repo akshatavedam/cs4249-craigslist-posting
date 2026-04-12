@@ -39,6 +39,12 @@ export default function App() {
   const [rdPhotos, setRdPhotos] = useState<string[]>([]);
   const [rdErrors, setRdErrors] = useState<Record<string, string>>({});
 
+  // Guided Tour State
+  const [showTour, setShowTour] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState(localStorage.getItem('hasSeenRdTour') === 'true');
+  const [isPrompted, setIsPrompted] = useState(false);
+  const [tourDismissed, setTourDismissed] = useState(false);
+
   const resetRdForm = () => {
     setRdForm(INITIAL_RD_FORM);
     setRdRentPeriod('Daily');
@@ -84,6 +90,9 @@ export default function App() {
     const handleUrlChange = () => {
       const params = new URLSearchParams(window.location.search);
       const s = params.get('s');
+      const prompted = params.get('prompt') === 'true';
+      setIsPrompted(prompted);
+      if (prompted) setShowTour(true);
       if (s === 'p') setView('post');
       else if (s === 'c') setView('category');
       else if (s === 'f') setView('form');
@@ -122,6 +131,119 @@ export default function App() {
     setView(newView);
     // Reset redesign state when navigating
     if (newView !== 'redesign') setShowRedesignSubcategories(false);
+
+    // Refresh tour state on navigation if prompted
+    if (isPrompted && !tourDismissed) {
+      setShowTour(true);
+    }
+  };
+
+  const SpotlightOverlay = ({ targetId, message, variant = 'spotlight' }: { targetId?: string, message: string, variant?: 'spotlight' | 'info' }) => {
+    const [rect, setRect] = useState<DOMRect | null>(null);
+
+    useEffect(() => {
+      if (variant !== 'spotlight' || !targetId) return;
+      const updateRect = () => {
+        const el = document.getElementById(targetId);
+        if (el) setRect(el.getBoundingClientRect());
+      };
+      updateRect();
+      window.addEventListener('resize', updateRect);
+      window.addEventListener('scroll', updateRect);
+      return () => {
+        window.removeEventListener('resize', updateRect);
+        window.removeEventListener('scroll', updateRect);
+      };
+    }, [targetId, view, showRedesignSubcategories, variant]);
+
+    if (!showTour || tourDismissed) return null;
+    if (variant === 'spotlight' && !rect) return null;
+
+    if (variant === 'info') {
+      return (
+        <div className="fixed bottom-8 right-8 z-[9999] pointer-events-auto">
+          <div className="bg-white p-6 rounded-xl shadow-2xl border border-gray-100 max-w-[320px] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-600" />
+            <h3 className="text-purple-600 font-bold text-xs uppercase tracking-wider mb-2">Guide</h3>
+            <p className="text-gray-800 font-medium mb-4 leading-relaxed">{message}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowTour(false)}
+                className="bg-purple-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-purple-700 transition-colors shadow-sm"
+              >
+                Close
+              </button>
+              {hasSeenTour && (
+                <button
+                  onClick={() => {
+                    setTourDismissed(true);
+                    setShowTour(false);
+                  }}
+                  className="bg-gray-50 text-gray-500 px-5 py-2 rounded-lg text-sm hover:bg-gray-100 transition-colors"
+                >
+                  Skip Tour
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="fixed inset-0 z-[9999] pointer-events-none">
+        {/* SVG Mask for spotlight effect */}
+        <svg className="w-full h-full">
+          <defs>
+            <mask id="spotlight-mask">
+              <rect width="100%" height="100%" fill="white" />
+              {rect && (
+                <rect
+                  x={rect.left - 5}
+                  y={rect.top - 5}
+                  width={rect.width + 10}
+                  height={rect.height + 10}
+                  rx="8"
+                  fill="black"
+                />
+              )}
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill="rgba(0,0,0,0.7)" mask="url(#spotlight-mask)" />
+        </svg>
+
+        {/* Tooltip Content */}
+        <div
+          className="absolute bg-white p-4 rounded-lg shadow-2xl pointer-events-auto max-w-[250px]"
+          style={{
+            top: (rect?.bottom ?? 0) + 20,
+            left: Math.max(20, Math.min(window.innerWidth - 270, (rect?.left ?? 0) + (rect?.width ?? 0) / 2 - 125)),
+          }}
+        >
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45" />
+          <p className="text-gray-800 font-medium mb-3">{message}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowTour(false)}
+              className="bg-purple-600 text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-purple-700 w-full"
+            >
+              Got it!
+            </button>
+            {hasSeenTour && (
+              <button
+                onClick={() => {
+                  setTourDismissed(true);
+                  setShowTour(false);
+                }}
+                className="border border-gray-300 text-gray-600 px-4 py-1.5 rounded text-sm hover:bg-gray-50 whitespace-nowrap"
+              >
+                Skip Tour
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderHome = () => (
@@ -138,6 +260,7 @@ export default function App() {
           </div>
 
           <button
+            id="tour-post-ad-btn-rd"
             onClick={() => {
               startTask();
               navigate('redesign');
@@ -216,7 +339,11 @@ export default function App() {
                 <Star size={20} className="text-yellow-500" />
                 <span>faves</span>
               </a>
-              <button onClick={() => { startTask(); navigate('redesign'); }} className="nav-icon-link">
+              <button
+                id="tour-post-btn"
+                onClick={() => { startTask(); navigate('redesign'); }}
+                className="nav-icon-link"
+              >
                 <SquarePen size={20} className="text-green-600" />
                 <span>post</span>
               </button>
@@ -896,6 +1023,7 @@ export default function App() {
           <div className="rd-category-divider"></div>
           <div className="rd-category-grid">
             <button
+              id="tour-housing-cat"
               onClick={() => setShowRedesignSubcategories(true)}
               className="rd-active-btn"
             >
@@ -946,6 +1074,7 @@ export default function App() {
           ].map((item, idx) => (
             <div
               key={idx}
+              id={item.label === 'apartments / housing for rent' ? 'tour-apt-subcat' : undefined}
               className="rd-subcategory-item"
               onClick={() => {
                 if (item.label === 'apartments / housing for rent') {
@@ -1251,13 +1380,10 @@ export default function App() {
       <div className="flex justify-between items-center mt-12 pt-4 border-t border-[#eee]">
         <button onClick={() => navigate('redesign')} className="rd-nav-btn-back">Back</button>
         <button
+          id="tour-next-btn"
           onClick={() => {
             if (validateRdForm()) {
               navigate('rd-preview');
-            } else {
-              // Log all errors found
-              const errs = validateRdForm(); // Get them again for logging if needed
-              // Note: setRdErrors was already called inside validateRdForm()
             }
           }}
           className="rd-nav-btn-next"
@@ -1345,10 +1471,12 @@ export default function App() {
       <div className="flex justify-between items-center mt-12 pt-4">
         <button onClick={() => navigate('rd-form')} className="rd-nav-btn-back text-lg">Back</button>
         <button
+          id="tour-publish-btn"
           onClick={() => {
             endTask();
-            alert('you have completed the flow, thank you');
+            alert('You have completed the task, thank you!');
             resetRdForm();
+            localStorage.setItem('hasSeenRdTour', 'true');
             navigate('home');
           }}
           className="rd-purple-btn px-12 text-lg"
@@ -1381,6 +1509,16 @@ export default function App() {
             Go Back
           </button>
         </div>
+      )}
+
+      {/* Guided Tour Spotlight */}
+      {isPrompted && showTour && !tourDismissed && (
+        <>
+          {view === 'home' && <SpotlightOverlay targetId="tour-post-ad-btn-rd" message="1. Click 'post an ad' in the sidebar to start." />}
+          {view === 'redesign' && !showRedesignSubcategories && <SpotlightOverlay targetId="tour-housing-cat" message="2. Select the 'housing offered' category." />}
+          {view === 'rd-form' && <SpotlightOverlay variant="info" message="3. Fill in all required fields marked with *." />}
+          {view === 'rd-preview' && <SpotlightOverlay variant="info" message="4. Final step! Review your information and click 'Publish' to complete the task." />}
+        </>
       )}
     </div>
   );
