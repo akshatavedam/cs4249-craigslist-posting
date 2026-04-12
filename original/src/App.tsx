@@ -9,46 +9,56 @@ import { startTask, endTask, logError, logNavigation } from './logger';
 
 type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review' | 'wrong';
 
+const INITIAL_FORM_DATA = {
+  title: '',
+  address: '',
+  city: '',
+  zip: '',
+  country: '',
+  description: '',
+  rent: '',
+  rentPeriod: 'month',
+  sqft: '',
+  housingType: 'apartment',
+  laundry: '-',
+  parking: '-',
+  bedrooms: '-',
+  bathrooms: '-',
+  catsOk: false,
+  dogsOk: false,
+  furnished: false,
+  noSmoking: false,
+  wheelchair: false,
+  airConditioning: false,
+  evCharging: false,
+  washer: false,
+  startDate: '',
+  email: '',
+  phone: '',
+  contactName: '',
+  showPhone: false
+};
+
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   // Form State
-  const [formData, setFormData] = useState({
-    title: '',
-    address: '',
-    city: '',
-    zip: '',
-    country: '',
-    description: '',
-    rent: '',
-    rentPeriod: 'month',
-    sqft: '',
-    housingType: 'apartment',
-    laundry: '-',
-    parking: '-',
-    bedrooms: '-',
-    bathrooms: '-',
-    catsOk: false,
-    dogsOk: false,
-    furnished: false,
-    noSmoking: false,
-    wheelchair: false,
-    airConditioning: false,
-    evCharging: false,
-    washer: false,
-    startDate: '',
-    email: '',
-    phone: '',
-    contactName: '',
-    showPhone: false
-  });
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [workerId, setWorkerId] = useState('');
   const [isWorkerIdSubmitted, setIsWorkerIdSubmitted] = useState(false);
+
+  const resetForm = () => {
+    setFormData(INITIAL_FORM_DATA);
+    setPhotos([]);
+    setErrors({});
+    setSelectedType('');
+    setSelectedCategory('');
+  };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -1026,6 +1036,7 @@ export default function App() {
           onClick={() => {
             endTask();
             alert('Success!');
+            resetForm();
             navigate('home');
           }}
           className="cl-button px-6 py-1 text-lg"
