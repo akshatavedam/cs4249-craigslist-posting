@@ -188,7 +188,8 @@ function logEvent(event: any, customName?: string, customInfo?: any) {
 // ---- Experiment-specific functions for DV1 & DV2 ----
 
 // Helper to read experiment metadata from URL query params
-function getExperimentMeta() {
+// Save experiment metadata on first page load (before navigation changes the URL)
+var savedMeta = (function() {
   var params = new URLSearchParams(window.location.search);
   return {
     pid: params.get('pid') || '',
@@ -196,6 +197,10 @@ function getExperimentMeta() {
     prompt: params.get('prompt') || '',
     set: params.get('set') || ''
   };
+})();
+
+function getExperimentMeta() {
+  return savedMeta;
 }
 
 // Call when user clicks "Post an Ad" — starts the task timer (DV1)
