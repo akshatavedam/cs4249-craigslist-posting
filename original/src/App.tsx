@@ -50,6 +50,12 @@ export default function App() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Guided Tour State
+  const [showTour, setShowTour] = useState(false);
+  const [hasSeenTour, setHasSeenTour] = useState(localStorage.getItem('hasSeenTour') === 'true');
+  const [isPrompted, setIsPrompted] = useState(false);
+  const [tourDismissed, setTourDismissed] = useState(false);
+
   const resetForm = () => {
     setFormData(INITIAL_FORM_DATA);
     setPhotos([]);
@@ -100,6 +106,9 @@ export default function App() {
     const handleUrlChange = () => {
       const params = new URLSearchParams(window.location.search);
       const s = params.get('s');
+      const prompted = params.get('prompt') === 'true';
+      setIsPrompted(prompted);
+      if (prompted) setShowTour(true);
       if (s === 'p') setView('post');
       else if (s === 'c') setView('category');
       else if (s === 'f') setView('form');
@@ -122,6 +131,7 @@ export default function App() {
     logNavigation(view, newView);
     let url = window.location.pathname;
     if (newView === 'post') url = '?s=p';
+
     else if (newView === 'category') url = '?s=c';
     else if (newView === 'form') url = '?s=f';
     else if (newView === 'images') url = '?s=i';
@@ -130,6 +140,117 @@ export default function App() {
 
     window.history.pushState({}, '', url);
     setView(newView);
+
+    // Refresh tour state on navigation if prompted
+    if (isPrompted && !tourDismissed) {
+      setShowTour(true);
+    }
+  };
+
+  const SpotlightOverlay = ({ targetId, message, variant = 'spotlight' }: { targetId?: string, message: string, variant?: 'spotlight' | 'info' }) => {
+    const [rect, setRect] = useState<DOMRect | null>(null);
+
+    useEffect(() => {
+      if (variant !== 'spotlight' || !targetId) return;
+      const updateRect = () => {
+        const el = document.getElementById(targetId);
+        if (el) setRect(el.getBoundingClientRect());
+      };
+      updateRect();
+      window.addEventListener('resize', updateRect);
+      window.addEventListener('scroll', updateRect);
+      return () => {
+        window.removeEventListener('resize', updateRect);
+        window.removeEventListener('scroll', updateRect);
+      };
+    }, [targetId, view, variant]);
+
+    if (!showTour || tourDismissed) return null;
+    if (variant === 'spotlight' && !rect) return null;
+
+    if (variant === 'info') {
+      return (
+        <div className="fixed bottom-8 right-8 z-[9999] pointer-events-auto">
+          <div className="bg-white p-6 border-2 border-black max-w-[320px] relative shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h3 className="font-bold text-xs uppercase tracking-wider mb-2 bg-black text-white px-2 py-0.5 inline-block">Instruction</h3>
+            <p className="text-gray-900 font-bold mb-4 leading-relaxed mt-2">{message}</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowTour(false)}
+                className="bg-[#efefef] border-2 border-black px-5 py-2 text-sm font-bold hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+              {hasSeenTour && (
+                <button
+                  onClick={() => {
+                    setTourDismissed(true);
+                    setShowTour(false);
+                  }}
+                  className="bg-white border-2 border-gray-400 px-5 py-2 text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  Skip Tour
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="fixed inset-0 z-[9999] pointer-events-none">
+        {/* SVG Mask for spotlight effect */}
+        <svg className="w-full h-full">
+          <defs>
+            <mask id="spotlight-mask-orig">
+              <rect width="100%" height="100%" fill="white" />
+              {rect && (
+                <rect
+                  x={rect.left - 5}
+                  y={rect.top - 5}
+                  width={rect.width + 10}
+                  height={rect.height + 10}
+                  rx="4"
+                  fill="black"
+                />
+              )}
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill="rgba(0,0,0,0.7)" mask="url(#spotlight-mask-orig)" />
+        </svg>
+
+        {/* Tooltip Content */}
+        <div
+          className="absolute bg-white p-4 border-2 border-black pointer-events-auto max-w-[250px]"
+          style={{
+            top: (rect?.bottom ?? 0) + 20,
+            left: Math.max(20, Math.min(window.innerWidth - 270, (rect?.left ?? 0) + (rect?.width ?? 0) / 2 - 125)),
+          }}
+        >
+          <p className="text-sm font-bold mb-3">{message}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowTour(false)}
+              className="bg-[#efefef] border border-black px-4 py-1 text-xs font-bold hover:bg-gray-200 w-full"
+            >
+              Got it!
+            </button>
+            {hasSeenTour && (
+              <button
+                onClick={() => {
+                  setTourDismissed(true);
+                  setShowTour(false);
+                }}
+                className="bg-white border border-gray-400 px-4 py-1 text-xs hover:bg-gray-50 whitespace-nowrap"
+              >
+                Skip Tour
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderHome = () => (
@@ -145,6 +266,7 @@ export default function App() {
         </div>
 
         <button
+          id="tour-post-ad-btn"
           onClick={() => {
             startTask();
             navigate('post');
@@ -476,6 +598,7 @@ export default function App() {
             return (
               <label key={type} className="cl-radio-label">
                 <input
+                  id={type === 'housing offered' ? 'tour-housing-offered' : undefined}
                   type="radio"
                   name="postType"
                   className="w-3 h-3"
@@ -490,12 +613,13 @@ export default function App() {
 
         <div className="mt-8">
           <button
+            id="tour-type-continue"
             onClick={() => {
               if (selectedType === 'housing offered') {
                 navigate('category');
               } else {
                 logError('wrong_category', 'Selected "' + selectedType + '" instead of "housing offered"');
-                navigate('wrong');
+                alert('Workflow test: Currently only "housing offered" is implemented for the next step.');
               }
             }}
             className="cl-button"
@@ -528,6 +652,7 @@ export default function App() {
           ].map((cat) => (
             <label key={cat} className="cl-radio-label items-start">
               <input
+                id={cat === 'apartments / housing for rent' ? 'tour-apt-rent' : undefined}
                 type="radio"
                 name="category"
                 className="w-3 h-3 mt-1"
@@ -546,12 +671,13 @@ export default function App() {
 
         <div className="mt-8">
           <button
+            id="tour-cat-continue"
             onClick={() => {
               if (selectedCategory === 'apartments / housing for rent') {
                 navigate('form');
               } else {
                 logError('wrong_category', 'Selected "' + selectedCategory + '" instead of "apartments / housing for rent"');
-                navigate('wrong');
+                alert('Workflow test: Currently only "apartments / housing for rent" is implemented for the next step.');
               }
             }}
             className="cl-button"
@@ -880,6 +1006,7 @@ export default function App() {
 
       <div className="flex justify-end mt-8">
         <button
+          id="tour-form-continue"
           onClick={() => {
             if (validateForm()) {
               navigate('images');
@@ -939,6 +1066,7 @@ export default function App() {
 
         <div className="flex flex-col items-center">
           <button
+            id="tour-done-images"
             onClick={() => navigate('review')}
             className="cl-done-btn mt-8"
           >
@@ -1031,10 +1159,12 @@ export default function App() {
           <button className="cl-review-btn-small">edit images</button>
         </div>
         <button
+          id="tour-publish-btn"
           onClick={() => {
             endTask();
             alert('Success!');
             resetForm();
+            localStorage.setItem('hasSeenTour', 'true');
             navigate('home');
           }}
           className="cl-button px-6 py-1 text-lg"
@@ -1064,6 +1194,20 @@ export default function App() {
             Go Back
           </button>
         </div>
+      )}
+
+      {/* Guided Tour Spotlight/Info */}
+      {isPrompted && showTour && !tourDismissed && (
+        <>
+          {view === 'home' && <SpotlightOverlay targetId="tour-post-ad-btn" message="1. Click 'post an ad' to start the posting process." />}
+          {view === 'post' && !selectedType && <SpotlightOverlay targetId="tour-housing-offered" message="2. Select 'housing offered' as your category." />}
+          {view === 'post' && selectedType === 'housing offered' && <SpotlightOverlay targetId="tour-type-continue" message="3. Click 'continue'." />}
+          {view === 'category' && !selectedCategory && <SpotlightOverlay targetId="tour-apt-rent" message="4. Select 'apartments / housing for rent'." />}
+          {view === 'category' && selectedCategory === 'apartments / housing for rent' && <SpotlightOverlay targetId="tour-cat-continue" message="5. Click 'continue'." />}
+          {view === 'form' && <SpotlightOverlay variant="info" message="6. Fill in the details." />}
+          {view === 'images' && <SpotlightOverlay variant="info" message="7. Upload photos if any, then proceed." />}
+          {view === 'review' && <SpotlightOverlay variant="info" message="8. Final review! Review your info and click 'publish' to submit." />}
+        </>
       )}
     </div>
   );
