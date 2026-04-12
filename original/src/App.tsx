@@ -5,6 +5,7 @@
 
 import { useEffect, useState, ChangeEvent } from 'react';
 import { Search, MapPin, Star, SquarePen, User, Plus, X } from 'lucide-react';
+import { startTask, endTask, logError, logNavigation } from './logger';
 
 type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review' | 'wrong';
 
@@ -108,7 +109,9 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
+
   const navigate = (newView: View) => {
+    logNavigation(view, newView);
     let url = window.location.pathname;
     if (newView === 'post') url = '?s=p';
     else if (newView === 'category') url = '?s=c';
@@ -134,7 +137,10 @@ export default function App() {
         </div>
 
         <button
-          onClick={() => navigate('post')}
+          onClick={() => {
+            startTask();
+            navigate('post');
+          }}
           className="post-ad-btn w-full"
         >
           <SquarePen size={16} />
@@ -480,6 +486,7 @@ export default function App() {
               if (selectedType === 'housing offered') {
                 navigate('category');
               } else {
+                logError('wrong_category', 'Selected "' + selectedType + '" instead of "housing offered"');
                 navigate('wrong');
               }
             }}
@@ -535,6 +542,7 @@ export default function App() {
               if (selectedCategory === 'apartments / housing for rent') {
                 navigate('form');
               } else {
+                logError('wrong_category', 'Selected "' + selectedCategory + '" instead of "apartments / housing for rent"');
                 navigate('wrong');
               }
             }}
@@ -941,6 +949,7 @@ export default function App() {
         <span className="font-bold text-lg ml-4">this is an unpublished draft.</span>
         <button
           onClick={() => {
+            endTask();
             alert('Success!');
             navigate('home');
           }}
@@ -1015,6 +1024,7 @@ export default function App() {
         </div>
         <button
           onClick={() => {
+            endTask();
             alert('Success!');
             navigate('home');
           }}

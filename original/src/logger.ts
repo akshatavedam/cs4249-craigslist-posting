@@ -1,4 +1,4 @@
-// Adapted from http://web.mit.edu/6.813/www/sp18/assignments/as1-implementation/logging.js
+/ Adapted from http://web.mit.edu/6.813/www/sp18/assignments/as1-implementation/logging.js
 //
 // A simple Google-spreadsheet-based event logging framework.
 //
@@ -75,23 +75,21 @@ function sendNetworkLog(
     info: string,
     state: string,
     log_version: string) {
-  var formid = "e/1FAIpQLScblldacOf3-BnDYM1FlVEL60PHs_x8_2yoqwLNVqmNarzX7A";
-  var data: Record<string, any> = {
-    "entry.1213174370": uid,
-    "entry.1557365071": time,
-    "entry.2063334899": eventName,
-    "entry.787942568": target,
-    "entry.251233848": info,
-    "entry.94462225": state,
-    "entry.1473081078": log_version
-  };
-  var params = [];
-  for (var key in data) {
-    params.push(key + "=" + encodeURIComponent(data[key]));
-  }
-  // Submit the form using an image to avoid CORS warnings; warning may still happen, but log will be sent. Go check result in Google Form
-  (new Image).src = "https://docs.google.com/forms/d/" + formid +
-     "/formResponse?" + params.join("&");
+  var payload = JSON.stringify({
+    uid: uid,
+    time: time,
+    eventName: eventName,
+    target: target,
+    info: info,
+    state: state,
+    version: log_version
+  });
+  fetch("https://script.google.com/macros/s/AKfycbzW5Eqtl1ia-d8YxAnDcITZ_WOUCPg2BSmDEeD5XBJfTpf9an8JRQyH_QEBcAdGVl-2HA/exec", {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: payload
+  }).catch(function() {});
 }
 
 // Parse user agent string by looking for recognized substring.
