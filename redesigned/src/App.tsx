@@ -9,6 +9,23 @@ import { startTask, endTask, logError, logNavigation } from './logger';
 
 type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review' | 'redesign' | 'rd-form' | 'rd-preview' | 'wrong';
 
+const INITIAL_RD_FORM = {
+  title: '',
+  address: '',
+  city: '',
+  zip: '',
+  country: '',
+  description: '',
+  phone: '',
+  email: '',
+  rent: '',
+  sqft: '',
+  housingType: 'Apartment',
+  bedrooms: '0',
+  bathrooms: '0',
+  startDate: ''
+};
+
 export default function App() {
   const [view, setView] = useState<View>('home');
   const [selectedType, setSelectedType] = useState<string>('');
@@ -16,28 +33,24 @@ export default function App() {
   const [showRedesignSubcategories, setShowRedesignSubcategories] = useState(false);
 
   // Redesign Form State
-  const [rdForm, setRdForm] = useState({
-    title: '',
-    address: '',
-    city: '',
-    zip: '',
-    country: '',
-    description: '',
-    phone: '',
-    email: '',
-    rent: '',
-    sqft: '',
-    housingType: 'Apartment',
-    bedrooms: '0',
-    bathrooms: '0',
-    startDate: ''
-  });
+  const [rdForm, setRdForm] = useState(INITIAL_RD_FORM);
   const [rdRentPeriod, setRdRentPeriod] = useState<'Monthly' | 'Weekly' | 'Daily'>('Daily');
   const [rdAmenities, setRdAmenities] = useState<string[]>([]);
   const [rdPhotos, setRdPhotos] = useState<string[]>([]);
   const [rdErrors, setRdErrors] = useState<Record<string, string>>({});
   const [workerId, setWorkerId] = useState('');
   const [isWorkerIdSubmitted, setIsWorkerIdSubmitted] = useState(false);
+
+  const resetRdForm = () => {
+    setRdForm(INITIAL_RD_FORM);
+    setRdRentPeriod('Daily');
+    setRdAmenities([]);
+    setRdPhotos([]);
+    setRdErrors({});
+    setSelectedType('');
+    setSelectedCategory('');
+    setShowRedesignSubcategories(false);
+  };
 
   const toggleRdAmenity = (label: string) => {
     setRdAmenities(prev =>
