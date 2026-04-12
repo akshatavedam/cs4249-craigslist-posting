@@ -6,7 +6,7 @@
 import { useEffect, useState, ChangeEvent } from 'react';
 import { Search, MapPin, Star, SquarePen, User, Plus, X } from 'lucide-react';
 
-type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review';
+type View = 'home' | 'post' | 'category' | 'form' | 'images' | 'review' | 'wrong';
 
 export default function App() {
   const [view, setView] = useState<View>('home');
@@ -16,8 +16,10 @@ export default function App() {
   // Form State
   const [formData, setFormData] = useState({
     title: '',
-    neighborhood: '',
+    address: '',
+    city: '',
     zip: '',
+    country: '',
     description: '',
     rent: '',
     rentPeriod: 'month',
@@ -34,6 +36,7 @@ export default function App() {
     wheelchair: false,
     airConditioning: false,
     evCharging: false,
+    washer: false,
     startDate: '',
     email: '',
     phone: '',
@@ -43,6 +46,8 @@ export default function App() {
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [workerId, setWorkerId] = useState('');
+  const [isWorkerIdSubmitted, setIsWorkerIdSubmitted] = useState(false);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -57,10 +62,14 @@ export default function App() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.title) newErrors.title = 'Title is required';
-    if (!formData.description) newErrors.description = 'Description is required';
-    if (!formData.rent) newErrors.rent = 'Price is required';
+    if (!formData.address) newErrors.address = 'Street Address is required';
+    if (!formData.city) newErrors.city = 'City is required';
+    if (!formData.zip) newErrors.zip = 'ZIP is required';
+    if (!formData.country) newErrors.country = 'Country is required';
+    if (!formData.rent) newErrors.rent = 'Rent is required';
+    if (!formData.sqft) newErrors.sqft = 'Sqft is required';
     if (!formData.email) newErrors.email = 'Email is required';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -87,6 +96,7 @@ export default function App() {
       else if (s === 'f') setView('form');
       else if (s === 'i') setView('images');
       else if (s === 'r') setView('review');
+      else if (s === 'w') setView('wrong');
       else setView('home');
     };
 
@@ -105,7 +115,8 @@ export default function App() {
     else if (newView === 'form') url = '?s=f';
     else if (newView === 'images') url = '?s=i';
     else if (newView === 'review') url = '?s=r';
-    
+    else if (newView === 'wrong') url = '?s=w';
+
     window.history.pushState({}, '', url);
     setView(newView);
   };
@@ -122,7 +133,7 @@ export default function App() {
           <span className="text-[10px] self-start mt-1">sg</span>
         </div>
 
-        <button 
+        <button
           onClick={() => navigate('post')}
           className="post-ad-btn w-full"
         >
@@ -131,8 +142,8 @@ export default function App() {
         </button>
 
         <div className="relative mt-2">
-          <input 
-            type="text" 
+          <input
+            type="text"
             className="w-full border border-[#ccc] px-2 py-1 pr-8 text-xs"
             placeholder="search craigslist"
           />
@@ -427,7 +438,7 @@ export default function App() {
         <h2 className="text-[16px] font-bold mb-4">
           what type of posting is this: (see <a href="#" className="text-blue-700 font-normal">prohibited</a>)
         </h2>
-        
+
         <div className="flex flex-col gap-1">
           {[
             'job offered',
@@ -450,10 +461,10 @@ export default function App() {
             if (type === '') return <div key={`spacer-${idx}`} className="h-4" />;
             return (
               <label key={type} className="cl-radio-label">
-                <input 
-                  type="radio" 
-                  name="postType" 
-                  className="w-3 h-3" 
+                <input
+                  type="radio"
+                  name="postType"
+                  className="w-3 h-3"
                   onChange={() => setSelectedType(type)}
                   checked={selectedType === type}
                 />
@@ -462,14 +473,14 @@ export default function App() {
             );
           })}
         </div>
-        
+
         <div className="mt-8">
-          <button 
+          <button
             onClick={() => {
               if (selectedType === 'housing offered') {
                 navigate('category');
               } else {
-                alert('Workflow test: Currently only "housing offered" is implemented for the next step.');
+                navigate('wrong');
               }
             }}
             className="cl-button"
@@ -487,7 +498,7 @@ export default function App() {
         <h2 className="text-[16px] font-bold mb-4">
           please choose a category: (see <a href="#" className="text-blue-700 font-normal">prohibited</a>)
         </h2>
-        
+
         <div className="flex flex-col gap-1">
           {[
             'rooms & shares',
@@ -501,10 +512,10 @@ export default function App() {
             'vacation rentals'
           ].map((cat) => (
             <label key={cat} className="cl-radio-label items-start">
-              <input 
-                type="radio" 
-                name="category" 
-                className="w-3 h-3 mt-1" 
+              <input
+                type="radio"
+                name="category"
+                className="w-3 h-3 mt-1"
                 onChange={() => setSelectedCategory(cat)}
                 checked={selectedCategory === cat}
               />
@@ -517,14 +528,14 @@ export default function App() {
             </label>
           ))}
         </div>
-        
+
         <div className="mt-8">
-          <button 
+          <button
             onClick={() => {
               if (selectedCategory === 'apartments / housing for rent') {
                 navigate('form');
               } else {
-                alert('Workflow test: Currently only "apartments / housing for rent" is implemented for the next step.');
+                navigate('wrong');
               }
             }}
             className="cl-button"
@@ -538,37 +549,68 @@ export default function App() {
 
   const renderPostingForm = () => (
     <div className="max-w-[800px] mx-auto p-4 font-sans text-[13px]">
+      {/* Validation Errors */}
+      {Object.keys(errors).length > 0 && (
+        <div className="mb-4 p-4 border-2 border-red-500 bg-[#ffffcc]">
+          <p className="text-red-600 font-bold mb-2">Please fix the following errors:</p>
+          <ul className="list-disc list-inside text-red-600 text-[11px]">
+            {Object.values(errors).map((error, idx) => <li key={idx}>{error}</li>)}
+          </ul>
+        </div>
+      )}
+
       {/* Top Row */}
       <div className="flex gap-4 mb-4">
         <div className="flex-1 relative">
           <label className="cl-form-section-label">posting title</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             name="title"
             value={formData.title}
             onChange={handleInputChange}
-            className={`w-full border-2 px-1 py-0.5 ${errors.title ? 'border-red-500' : 'border-black'}`} 
+            className="w-full px-1 py-0.5 outline-none border border-[#006600]"
           />
-          {errors.title && <span className="text-red-600 text-[10px] block mt-1">{errors.title}</span>}
         </div>
-        <div className="w-48">
-          <label className="cl-form-section-label">city or neighborhood</label>
-          <input 
-            type="text" 
-            name="neighborhood"
-            value={formData.neighborhood}
+        <div className="w-1/2">
+          <label className="cl-form-section-label">street address</label>
+          <input
+            type="text"
+            name="address"
+            value={formData.address}
             onChange={handleInputChange}
-            className="w-full border border-[#ccc] px-1 py-0.5" 
+            className="w-full px-1 py-0.5 outline-none border border-[#006600]"
           />
         </div>
-        <div className="w-24">
+      </div>
+      <div className="flex gap-4 mb-4">
+        <div className="w-1/3">
+          <label className="cl-form-section-label">city</label>
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            onChange={handleInputChange}
+            className="w-full px-1 py-0.5 outline-none border border-[#006600]"
+          />
+        </div>
+        <div className="w-1/3">
           <label className="cl-form-section-label">ZIP code</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             name="zip"
             value={formData.zip}
             onChange={handleInputChange}
-            className="w-full border border-[#ccc] px-1 py-0.5" 
+            className="w-full px-1 py-0.5 outline-none border border-[#006600]"
+          />
+        </div>
+        <div className="w-1/3">
+          <label className="cl-form-section-label">country</label>
+          <input
+            type="text"
+            name="country"
+            value={formData.country}
+            onChange={handleInputChange}
+            className="w-full px-1 py-0.5 outline-none border border-[#006600]"
           />
         </div>
       </div>
@@ -576,13 +618,12 @@ export default function App() {
       {/* Description */}
       <div className="mb-4">
         <label className="cl-form-section-label">description</label>
-        <textarea 
+        <textarea
           name="description"
           value={formData.description}
           onChange={handleInputChange}
-          className={`w-full h-48 border p-1 resize-y outline-none ${errors.description ? 'border-red-500' : 'border-[#006600]'}`} 
+          className="w-full h-48 border border-[#ccc] p-1 resize-y outline-none"
         />
-        {errors.description && <span className="text-red-600 text-[10px] block mt-1">{errors.description}</span>}
       </div>
 
       {/* Posting Details */}
@@ -593,21 +634,20 @@ export default function App() {
           <div className="flex flex-col gap-4">
             <div>
               <label className="cl-form-section-label">rent</label>
-              <div className={`flex items-center border px-1 ${errors.rent ? 'border-red-500' : 'border-[#006600]'}`}>
+              <div className="flex items-center border px-1 border-[#006600]">
                 <span className="text-[#006600]">$</span>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="rent"
                   value={formData.rent}
                   onChange={handleInputChange}
-                  className="w-full outline-none py-0.5 px-1" 
+                  className="w-full outline-none py-0.5 px-1"
                 />
               </div>
-              {errors.rent && <span className="text-red-600 text-[10px] block mt-1">{errors.rent}</span>}
             </div>
             <div>
               <label className="cl-form-section-label">per</label>
-              <select 
+              <select
                 name="rentPeriod"
                 value={formData.rentPeriod}
                 onChange={handleInputChange}
@@ -621,12 +661,12 @@ export default function App() {
             </div>
             <div>
               <label className="cl-form-section-label">sqft</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 name="sqft"
                 value={formData.sqft}
                 onChange={handleInputChange}
-                className="cl-input-green w-full" 
+                className="w-full px-1 py-0.5 outline-none border border-[#006600]"
               />
             </div>
           </div>
@@ -635,7 +675,7 @@ export default function App() {
           <div className="flex flex-col gap-4">
             <div>
               <label className="cl-form-section-label">housing type</label>
-              <select 
+              <select
                 name="housingType"
                 value={formData.housingType}
                 onChange={handleInputChange}
@@ -648,7 +688,7 @@ export default function App() {
             </div>
             <div>
               <label className="cl-form-section-label">laundry</label>
-              <select 
+              <select
                 name="laundry"
                 value={formData.laundry}
                 onChange={handleInputChange}
@@ -664,7 +704,7 @@ export default function App() {
             </div>
             <div>
               <label className="cl-form-section-label">parking</label>
-              <select 
+              <select
                 name="parking"
                 value={formData.parking}
                 onChange={handleInputChange}
@@ -676,13 +716,13 @@ export default function App() {
                 <option value="detached garage">detached garage</option>
                 <option value="off-street parking">off-street parking</option>
                 <option value="street parking">street parking</option>
-                <option value="valet parking">valet parking</option>
+                <option value="valet parking">free parking</option>
                 <option value="no parking">no parking</option>
               </select>
             </div>
             <div>
               <label className="cl-form-section-label">bedrooms</label>
-              <select 
+              <select
                 name="bedrooms"
                 value={formData.bedrooms}
                 onChange={handleInputChange}
@@ -702,7 +742,7 @@ export default function App() {
             </div>
             <div>
               <label className="cl-form-section-label">bathrooms</label>
-              <select 
+              <select
                 name="bathrooms"
                 value={formData.bathrooms}
                 onChange={handleInputChange}
@@ -728,18 +768,19 @@ export default function App() {
             <label className="flex items-center gap-2"><input type="checkbox" name="wheelchair" checked={formData.wheelchair} onChange={handleInputChange} /> wheelchair accessible</label>
             <label className="flex items-center gap-2"><input type="checkbox" name="airConditioning" checked={formData.airConditioning} onChange={handleInputChange} /> air conditioning</label>
             <label className="flex items-center gap-2"><input type="checkbox" name="evCharging" checked={formData.evCharging} onChange={handleInputChange} /> EV charging</label>
+            <label className="flex items-center gap-2"><input type="checkbox" name="washer" checked={formData.washer} onChange={handleInputChange} /> washer</label>
           </div>
 
           {/* Right Col */}
           <div className="flex flex-col gap-4">
             <div>
               <label className="cl-form-section-label">available on</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 name="startDate"
                 value={formData.startDate}
                 onChange={handleInputChange}
-                className="cl-input w-full" 
+                className="cl-input w-full"
               />
             </div>
             <div className="border border-[#ccc] p-2 relative pt-4 text-[10px]">
@@ -769,26 +810,25 @@ export default function App() {
         <div className="grid grid-cols-2 gap-8">
           <div>
             <label className="cl-form-section-label">email</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`cl-input-green w-full ${errors.email ? 'border-red-500' : ''}`} 
+              className="cl-input-green w-full"
             />
-            {errors.email && <span className="text-red-600 text-[10px] block mt-1">{errors.email}</span>}
             <p className="text-[11px] mt-1">replies use CL mail relay <a href="#" className="text-blue-700 font-normal">[?]</a></p>
           </div>
           <div className="border border-[#ccc] p-4 relative pt-6">
             <span className="absolute -top-3 left-2 bg-white px-1 text-[11px] text-gray-500">phone/text</span>
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   name="showPhone"
                   checked={formData.showPhone}
                   onChange={handleInputChange}
-                /> 
+                />
                 show my phone number
               </label>
               <div className={`flex gap-4 text-[11px] ${!formData.showPhone ? 'text-gray-300' : ''}`}>
@@ -797,23 +837,23 @@ export default function App() {
               </div>
               <div>
                 <label className="text-[10px] text-gray-400 block">phone number</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
                   disabled={!formData.showPhone}
-                  className="w-full border border-[#ccc] px-1 py-0.5 disabled:bg-gray-50" 
+                  className="w-full border border-[#ccc] px-1 py-0.5 disabled:bg-gray-50"
                 />
               </div>
               <div>
                 <label className="text-[10px] text-gray-400 block">contact name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="contactName"
                   value={formData.contactName}
                   onChange={handleInputChange}
-                  className="w-full border border-[#ccc] px-1 py-0.5" 
+                  className="w-full border border-[#ccc] px-1 py-0.5"
                 />
               </div>
             </div>
@@ -822,7 +862,7 @@ export default function App() {
       </div>
 
       <div className="flex justify-end mt-8">
-        <button 
+        <button
           onClick={() => {
             if (validateForm()) {
               navigate('images');
@@ -839,15 +879,15 @@ export default function App() {
   const renderImageUpload = () => (
     <div className="max-w-[1000px] mx-auto p-8 font-sans">
       <p className="text-[15px] mb-4">this posting has {photos.length} images of a maximum 24</p>
-      
+
       <div className="grid grid-cols-[1fr_300px] gap-12 items-start">
         <div className="flex flex-col gap-4">
           <div className="cl-upload-box">
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*" 
-              onChange={handlePhotoUpload} 
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handlePhotoUpload}
               className="absolute inset-0 opacity-0 cursor-pointer z-10"
             />
             <div className="absolute top-12 left-8 pointer-events-none">
@@ -862,7 +902,7 @@ export default function App() {
             {photos.map((photo, index) => (
               <div key={index} className="relative aspect-square border border-gray-200">
                 <img src={photo} alt="" className="w-full h-full object-cover" />
-                <button 
+                <button
                   onClick={() => removePhoto(index)}
                   className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1"
                 >
@@ -881,17 +921,9 @@ export default function App() {
         </div>
 
         <div className="flex flex-col items-center">
-          <div className="text-center mb-8">
-            <p className="text-sm">Scan the QR code to upload images from your phone</p>
-            <div className="w-32 h-32 bg-gray-100 border border-gray-300 mx-auto my-2 flex items-center justify-center text-[10px] text-gray-400">
-              [QR CODE]
-            </div>
-            <p className="text-[11px] font-bold">Stay on this page while uploading.</p>
-          </div>
-          
-          <button 
+          <button
             onClick={() => navigate('review')}
-            className="cl-done-btn"
+            className="cl-done-btn mt-8"
           >
             done with images
           </button>
@@ -903,10 +935,10 @@ export default function App() {
   const renderReview = () => (
     <div className="max-w-[900px] mx-auto p-4 font-sans">
       <p className="text-center text-sm mb-4">Attention: posting will expire in 45 days</p>
-      
+
       <div className="cl-review-banner">
         <span className="font-bold text-lg ml-4">this is an unpublished draft.</span>
-        <button 
+        <button
           onClick={() => {
             alert('Success!');
             navigate('home');
@@ -929,13 +961,13 @@ export default function App() {
 
       <div className="mt-6">
         <button className="cl-reply-btn mb-4">reply</button>
-        
+
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <h1 className="text-xl font-bold mb-2">
-              ${formData.rent || '0'} / {formData.bedrooms !== '-' ? `${formData.bedrooms}br` : 'size'} - {formData.title || '(no title)'} {formData.neighborhood && `(${formData.neighborhood})`}
+              ${formData.rent || '0'} / {formData.bedrooms !== '-' ? `${formData.bedrooms}br` : ''} {formData.sqft ? `- ${formData.sqft}ft2` : ''} - {formData.title || '(no title)'} {formData.city && `(${formData.city})`}
             </h1>
-            
+
             {/* Review Photos */}
             {photos.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4 p-2 bg-gray-50 border border-gray-200">
@@ -946,7 +978,7 @@ export default function App() {
             )}
 
             <p className="text-sm mb-12 whitespace-pre-wrap">{formData.description || '(no description)'}</p>
-            
+
             <div className="flex items-center gap-1 text-gray-400 text-[11px]">
               <span>♥</span>
               <span>best of <sup>[?]</sup></span>
@@ -969,6 +1001,7 @@ export default function App() {
             {formData.dogsOk && <span className="cl-attribute-link">dogs ok</span>}
             {formData.furnished && <span className="cl-attribute-link">furnished</span>}
             {formData.noSmoking && <span className="cl-attribute-link">no smoking</span>}
+            {formData.washer && <span className="cl-attribute-link">washer</span>}
             {formData.startDate && <span className="cl-attribute-link">available: {formData.startDate}</span>}
           </div>
         </div>
@@ -979,7 +1012,7 @@ export default function App() {
           <button className="cl-review-btn-small">edit post</button>
           <button className="cl-review-btn-small">edit images</button>
         </div>
-        <button 
+        <button
           onClick={() => {
             alert('Success!');
             navigate('home');
@@ -993,24 +1026,57 @@ export default function App() {
   );
 
   return (
-    <div className="max-w-[1100px] mx-auto p-4">
-      {view === 'home' && renderHome()}
-      {view === 'post' && renderPostAd()}
-      {view === 'category' && renderCategorySelection()}
-      {view === 'form' && renderPostingForm()}
-      {view === 'images' && renderImageUpload()}
-      {view === 'review' && renderReview()}
-      
-      <footer className="mt-12 pt-4 border-t border-[#ccc] text-[10px] text-center text-gray-500 flex justify-center gap-4">
-        <span>© craigslist</span>
-        <a href="#">help</a>
-        <a href="#">safety</a>
-        <a href="#">privacy</a>
-        <a href="#">feedback</a>
-        <a href="#">terms</a>
-        <a href="#">about</a>
-        <a href="#">mobile</a>
-      </footer>
-    </div>
+    <>
+      {!isWorkerIdSubmitted && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-6 border border-black max-w-md w-full">
+            <h2 className="text-xl font-bold mb-2">Welcome</h2>
+            <p className="mb-4 text-sm">Please enter your Worker ID to begin the interaction.</p>
+            <div className="mb-4">
+              <label className="font-bold text-sm block mb-1">Worker ID*</label>
+              <input
+                type="text"
+                className="w-full border-2 border-black px-2 py-1"
+                placeholder="Enter your ID"
+                value={workerId}
+                onChange={(e) => setWorkerId(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={() => {
+                if (workerId.trim()) {
+                  setIsWorkerIdSubmitted(true);
+                } else {
+                  alert('Worker ID is compulsory');
+                }
+              }}
+              className="w-full bg-[#efefef] border border-black py-2 font-bold hover:bg-[#e5e5e5]"
+            >
+              Start Interaction
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="max-w-[1100px] mx-auto p-4">
+        {view === 'home' && renderHome()}
+        {view === 'post' && renderPostAd()}
+        {view === 'category' && renderCategorySelection()}
+        {view === 'form' && renderPostingForm()}
+        {view === 'images' && renderImageUpload()}
+        {view === 'review' && renderReview()}
+        {view === 'wrong' && (
+          <div className="max-w-[800px] mx-auto p-12 text-center font-sans">
+            <h1 className="text-3xl font-bold mb-4">wrong page</h1>
+            <p className="text-gray-600 mb-8">This is not the correct path for this mock flow.</p>
+            <button
+              onClick={() => window.history.back()}
+              className="cl-button px-6 py-2"
+            >
+              Go Back
+            </button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

@@ -34,7 +34,7 @@ export default function App() {
   const [rdRentPeriod, setRdRentPeriod] = useState<'Monthly' | 'Weekly' | 'Daily'>('Daily');
   const [rdAmenities, setRdAmenities] = useState<string[]>([]);
   const [rdPhotos, setRdPhotos] = useState<string[]>([]);
-  const [rdErrors, setRdErrors] = useState<string[]>([]);
+  const [rdErrors, setRdErrors] = useState<Record<string, string>>({});
   const [workerId, setWorkerId] = useState('');
   const [isWorkerIdSubmitted, setIsWorkerIdSubmitted] = useState(false);
 
@@ -53,17 +53,17 @@ export default function App() {
   };
 
   const validateRdForm = () => {
-    const errors: string[] = [];
-    if (!rdForm.title) errors.push('Title is required');
-    if (!rdForm.address) errors.push('Street Address is required');
-    if (!rdForm.city) errors.push('City is required');
-    if (!rdForm.zip) errors.push('ZIP Code is required');
-    if (!rdForm.country) errors.push('Country is required');
-    if (!rdForm.rent) errors.push('Rent is required');
-    if (!rdForm.sqft) errors.push('Sqft is required');
+    const errors: Record<string, string> = {};
+    if (!rdForm.title) errors.title = 'Title is required';
+    if (!rdForm.address) errors.address = 'Street Address is required';
+    if (!rdForm.city) errors.city = 'City is required';
+    if (!rdForm.zip) errors.zip = 'ZIP Code is required';
+    if (!rdForm.country) errors.country = 'Country is required';
+    if (!rdForm.rent) errors.rent = 'Rent is required';
+    if (!rdForm.sqft) errors.sqft = 'Sqft is required';
 
     setRdErrors(errors);
-    return errors.length === 0;
+    return Object.keys(errors).length === 0;
   };
 
   // Sync state with URL query parameters
@@ -985,16 +985,6 @@ export default function App() {
 
       <h2 className="text-center text-lg font-bold mb-8">Details</h2>
 
-      {/* Validation Errors */}
-      {rdErrors.length > 0 && (
-        <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-600 font-bold text-sm mb-2">Please fix the following errors:</p>
-          <ul className="list-disc list-inside text-red-500 text-xs">
-            {rdErrors.map((error, idx) => <li key={idx}>{error}</li>)}
-          </ul>
-        </div>
-      )}
-
       {/* Photos */}
       <section className="mb-12">
         <h3 className="rd-section-title">Photos <span className="text-[11px] text-gray-400 font-normal">(if applicable)</span></h3>
@@ -1041,48 +1031,53 @@ export default function App() {
             </div>
             <input
               type="text"
-              className="rd-input"
+              className={`rd-input ${rdErrors.title ? 'border-red-500' : ''}`}
               placeholder="What are you offering?"
               value={rdForm.title}
               onChange={(e) => setRdForm({ ...rdForm, title: e.target.value.slice(0, 80) })}
             />
+            {rdErrors.title && <span className="text-red-500 text-xs mt-1 block">{rdErrors.title}</span>}
           </div>
           <div>
             <label className="rd-input-label">Street Address*</label>
             <input
               type="text"
-              className="rd-input"
+              className={`rd-input ${rdErrors.address ? 'border-red-500' : ''}`}
               value={rdForm.address}
               onChange={(e) => setRdForm({ ...rdForm, address: e.target.value })}
             />
+            {rdErrors.address && <span className="text-red-500 text-xs mt-1 block">{rdErrors.address}</span>}
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="rd-input-label">City*</label>
               <input
                 type="text"
-                className="rd-input"
+                className={`rd-input ${rdErrors.city ? 'border-red-500' : ''}`}
                 value={rdForm.city}
                 onChange={(e) => setRdForm({ ...rdForm, city: e.target.value })}
               />
+              {rdErrors.city && <span className="text-red-500 text-xs mt-1 block">{rdErrors.city}</span>}
             </div>
             <div>
               <label className="rd-input-label">ZIP Code*</label>
               <input
                 type="text"
-                className="rd-input"
+                className={`rd-input ${rdErrors.zip ? 'border-red-500' : ''}`}
                 value={rdForm.zip}
                 onChange={(e) => setRdForm({ ...rdForm, zip: e.target.value })}
               />
+              {rdErrors.zip && <span className="text-red-500 text-xs mt-1 block">{rdErrors.zip}</span>}
             </div>
             <div>
               <label className="rd-input-label">Country*</label>
               <input
                 type="text"
-                className="rd-input"
+                className={`rd-input ${rdErrors.country ? 'border-red-500' : ''}`}
                 value={rdForm.country}
                 onChange={(e) => setRdForm({ ...rdForm, country: e.target.value })}
               />
+              {rdErrors.country && <span className="text-red-500 text-xs mt-1 block">{rdErrors.country}</span>}
             </div>
           </div>
           <div>
@@ -1133,7 +1128,7 @@ export default function App() {
         <div className="grid grid-cols-[1fr_1fr_1fr] gap-x-12 gap-y-6">
           <div>
             <label className="rd-input-label">Rent*</label>
-            <div className="flex items-center bg-[#f9f9f9] border border-[#ccc] rounded-sm px-2">
+            <div className={`flex items-center bg-[#f9f9f9] border ${rdErrors.rent ? 'border-red-500' : 'border-[#ccc]'} rounded-sm px-2`}>
               <span className="text-sm font-bold">$</span>
               <input
                 type="text"
@@ -1145,6 +1140,7 @@ export default function App() {
                 }}
               />
             </div>
+            {rdErrors.rent && <span className="text-red-500 text-xs mt-1 block">{rdErrors.rent}</span>}
           </div>
           <div className="flex flex-col justify-end">
             <div className="flex">
@@ -1172,7 +1168,7 @@ export default function App() {
             <label className="rd-input-label">Sqft*</label>
             <input
               type="text"
-              className="rd-input"
+              className={`rd-input ${rdErrors.sqft ? 'border-red-500' : ''}`}
               placeholder="Size in square feet"
               value={rdForm.sqft}
               onChange={(e) => {
@@ -1180,6 +1176,7 @@ export default function App() {
                 setRdForm({ ...rdForm, sqft: val });
               }}
             />
+            {rdErrors.sqft && <span className="text-red-500 text-xs mt-1 block">{rdErrors.sqft}</span>}
           </div>
           <div>
             <label className="rd-input-label">Housing Type</label>
