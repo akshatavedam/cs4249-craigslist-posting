@@ -49,8 +49,6 @@ export default function App() {
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [workerId, setWorkerId] = useState('');
-  const [isWorkerIdSubmitted, setIsWorkerIdSubmitted] = useState(false);
 
   const resetForm = () => {
     setFormData(INITIAL_FORM_DATA);
@@ -1048,57 +1046,25 @@ export default function App() {
   );
 
   return (
-    <>
-      {!isWorkerIdSubmitted && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-          <div className="bg-white p-6 border border-black max-w-md w-full">
-            <h2 className="text-xl font-bold mb-2">Welcome</h2>
-            <p className="mb-4 text-sm">Please enter your Worker ID to begin the interaction.</p>
-            <div className="mb-4">
-              <label className="font-bold text-sm block mb-1">Worker ID*</label>
-              <input
-                type="text"
-                className="w-full border-2 border-black px-2 py-1"
-                placeholder="Enter your ID"
-                value={workerId}
-                onChange={(e) => setWorkerId(e.target.value)}
-              />
-            </div>
-            <button
-              onClick={() => {
-                if (workerId.trim()) {
-                  setIsWorkerIdSubmitted(true);
-                } else {
-                  alert('Worker ID is compulsory');
-                }
-              }}
-              className="w-full bg-[#efefef] border border-black py-2 font-bold hover:bg-[#e5e5e5]"
-            >
-              Start Interaction
-            </button>
-          </div>
+    <div className="max-w-[1100px] mx-auto p-4">
+      {view === 'home' && renderHome()}
+      {view === 'post' && renderPostAd()}
+      {view === 'category' && renderCategorySelection()}
+      {view === 'form' && renderPostingForm()}
+      {view === 'images' && renderImageUpload()}
+      {view === 'review' && renderReview()}
+      {view === 'wrong' && (
+        <div className="max-w-[800px] mx-auto p-12 text-center font-sans">
+          <h1 className="text-3xl font-bold mb-4">wrong page</h1>
+          <p className="text-gray-600 mb-8">This is not the correct path for this mock flow.</p>
+          <button
+            onClick={() => window.history.back()}
+            className="cl-button px-6 py-2"
+          >
+            Go Back
+          </button>
         </div>
       )}
-      <div className="max-w-[1100px] mx-auto p-4">
-        {view === 'home' && renderHome()}
-        {view === 'post' && renderPostAd()}
-        {view === 'category' && renderCategorySelection()}
-        {view === 'form' && renderPostingForm()}
-        {view === 'images' && renderImageUpload()}
-        {view === 'review' && renderReview()}
-        {view === 'wrong' && (
-          <div className="max-w-[800px] mx-auto p-12 text-center font-sans">
-            <h1 className="text-3xl font-bold mb-4">wrong page</h1>
-            <p className="text-gray-600 mb-8">This is not the correct path for this mock flow.</p>
-            <button
-              onClick={() => window.history.back()}
-              className="cl-button px-6 py-2"
-            >
-              Go Back
-            </button>
-          </div>
-        )}
-      </div>
-    </>
+    </div>
   );
 }

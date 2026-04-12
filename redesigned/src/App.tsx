@@ -38,8 +38,6 @@ export default function App() {
   const [rdAmenities, setRdAmenities] = useState<string[]>([]);
   const [rdPhotos, setRdPhotos] = useState<string[]>([]);
   const [rdErrors, setRdErrors] = useState<Record<string, string>>({});
-  const [workerId, setWorkerId] = useState('');
-  const [isWorkerIdSubmitted, setIsWorkerIdSubmitted] = useState(false);
 
   const resetRdForm = () => {
     setRdForm(INITIAL_RD_FORM);
@@ -128,36 +126,6 @@ export default function App() {
 
   const renderHome = () => (
     <div className="relative">
-      {!isWorkerIdSubmitted && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full border border-gray-100">
-            <h2 className="text-2xl font-bold mb-2 text-gray-900">Welcome</h2>
-            <p className="text-gray-500 mb-6 text-sm">Please enter your Worker ID to begin the interaction.</p>
-            <div className="mb-6">
-              <label className="rd-input-label mb-2 block">Worker ID*</label>
-              <input
-                type="text"
-                className="rd-input"
-                placeholder="Enter your ID"
-                value={workerId}
-                onChange={(e) => setWorkerId(e.target.value)}
-              />
-            </div>
-            <button
-              onClick={() => {
-                if (workerId.trim()) {
-                  setIsWorkerIdSubmitted(true);
-                } else {
-                  alert('Worker ID is compulsory');
-                }
-              }}
-              className="rd-purple-btn w-full py-3 text-lg font-semibold"
-            >
-              Start Interaction
-            </button>
-          </div>
-        </div>
-      )}
       <div className="grid grid-cols-[200px_1fr_150px] gap-4">
         {/* Left Sidebar */}
         <aside className="flex flex-col gap-4">
@@ -248,7 +216,7 @@ export default function App() {
                 <Star size={20} className="text-yellow-500" />
                 <span>faves</span>
               </a>
-		    <button onClick={() => { startTask(); navigate('redesign'); }} className="nav-icon-link">
+              <button onClick={() => { startTask(); navigate('redesign'); }} className="nav-icon-link">
                 <SquarePen size={20} className="text-green-600" />
                 <span>post</span>
               </button>
@@ -1380,6 +1348,7 @@ export default function App() {
           onClick={() => {
             endTask();
             alert('you have completed the flow, thank you');
+            resetRdForm();
             navigate('home');
           }}
           className="rd-purple-btn px-12 text-lg"
